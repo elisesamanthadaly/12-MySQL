@@ -26,15 +26,6 @@ CREATE TABLE employee (
   PRIMARY KEY (id)
 );
 
--- ADD
-INSERT INTO department (name) VALUES ("software");
-INSERT INTO role (title, salary, department_id) VALUES ("engineer", 100.50, 1);
-INSERT INTO employee (first_name, last_name, role_id, manager_id) VALUES ("Bob", "Brown", 1, null), ("Sally", "White", 1, 1);
-
--- VIEW
-SELECT * FROM employeetracker_db.department;
-SELECT * FROM employeetracker_db.role;
-SELECT * FROM employeetracker_db.employee;
-
--- UPDATE
-UPDATE employee SET role_id = 2 WHERE id = 1;
+INSERT INTO department (name) VALUES ("Software"), ("Hardware"), ("Sales");
+INSERT INTO role (title, salary, department_id) VALUES ("Developer", 100.50, 1), ("Debugger", 50.25, 1), ("Engineer", 250.00, 2), ("Rep", 500.00, 3);
+INSERT INTO employee (first_name, last_name, role_id, manager_id) VALUES ("Bob", "Brown", 1, null), ("Sally", "White", 2, 1);

@@ -1,8 +1,10 @@
+// npm dependencies
 const mysql = require("mysql");
 require("dotenv").config();
 const inquirer = require("inquirer");
 const cTable = require("console.table");
 
+// Setting up a connection to the existing database
 const connection = mysql.createConnection({
   host: "localhost",
   port: 3306,
@@ -11,6 +13,7 @@ const connection = mysql.createConnection({
   database: process.env.DB_NAME,
 });
 
+// Main Menu
 const mainMenu = [
   {
       type: "list",
@@ -38,6 +41,7 @@ function mainMenuAsk() {
   });
 }
 
+// Add Menu
 const addMenu = [
   {
       type: "list",
@@ -47,6 +51,7 @@ const addMenu = [
   },
 ];
 
+// New department menu
 const addDepartment = [
   {
     type: "input",
@@ -55,6 +60,7 @@ const addDepartment = [
   },
 ];
 
+// New role menu
 var departmentChoices = [];
 const addRole = [
   {
@@ -65,7 +71,7 @@ const addRole = [
   {
     type: "input",
     name: "salary",
-    message: "What is the new role's salary?",
+    message: "What is the new role's salary? Please enter a number with up to two decimals, e.g. 12.34.",
   },
   {
     type: "list",
@@ -75,6 +81,7 @@ const addRole = [
   },
 ];
 
+// New employee menu
 var roleChoices = ["None"];
 var managerChoices = ["No manager"];
 const addEmployee = [
@@ -104,14 +111,19 @@ const addEmployee = [
 
 function addAsk() {
   inquirer.prompt(addMenu).then((addMenuSelection) => {
+    // Add a department
     if (addMenuSelection.options === "A department") {
       inquirer.prompt(addDepartment).then((addDepartmentAnswer) => {
+        // Add new department to database
         connection.query(`INSERT INTO department (name) VALUES ("${addDepartmentAnswer.name}");`);
+        // Return to main menu
         mainMenuAsk();
       });
     }
+    // Add a role
     else if (addMenuSelection.options === "A role") {
       connection.query(`SELECT * FROM employeetracker_db.department;`, (err, res) => {
+        // Update department choices
         for (let i = 0; i < res.length; i++) {
           let departmentChoice = res[i].name;
           if (!departmentChoices.includes(departmentChoice)) {
@@ -121,17 +133,20 @@ function addAsk() {
 
         inquirer.prompt(addRole).then((addRoleAnswers) => {
           connection.query(`SELECT * FROM employeetracker_db.department WHERE department.name = "${addRoleAnswers.department}";`, (err, res) => {
+            // Obtain department id for new role
             var departmentId = res[0].id;
   
+            // Add new role to database
             connection.query(`INSERT INTO role (title, salary, department_id) VALUES ("${addRoleAnswers.title}", ${addRoleAnswers.salary}, ${departmentId});`);
           });
-
           mainMenuAsk();
         });
       });
     }
+    // Add an employee
     else if (addMenuSelection.options === "An employee") {
       connection.query(`SELECT * FROM employeetracker_db.role;`, (err, res) => {
+        // Update role choices
         for (let i = 0; i < res.length; i++) {
           let roleChoice = res[i].title;
           if (!roleChoices.includes(roleChoice)) {
@@ -140,6 +155,7 @@ function addAsk() {
         }
 
         connection.query(`SELECT * FROM employeetracker_db.employee;`, (err, res) => {
+          // Update manager choices
           for (let i = 0; i < res.length; i++) {
             let managerChoice = `${res[i].first_name} ${res[i].last_name}`;
             if (!managerChoices.includes(managerChoice)) {
@@ -149,8 +165,10 @@ function addAsk() {
   
           inquirer.prompt(addEmployee).then((addEmployeeAnswers) => {
             connection.query(`SELECT * FROM employeetracker_db.role WHERE role.title = "${addEmployeeAnswers.role}";`, (err, res) => {
+              // Obtain role id for new employee
               var employeeRoleId = res[0].id;
 
+              // Obtain manageer id for new employee
               var employeeManagerId;
               if (addEmployeeAnswers.manager === "No manager") {
                 employeeManagerId = null;
@@ -159,20 +177,22 @@ function addAsk() {
                 employeeManagerId = managerChoices.indexOf(addEmployeeAnswers.manager);
               }
     
+              // Add new employee to database
               connection.query(`INSERT INTO employee (first_name, last_name, role_id, manager_id) VALUES ("${addEmployeeAnswers.firstName}", "${addEmployeeAnswers.lastName}", ${employeeRoleId}, ${employeeManagerId});`);
             });
-
             mainMenuAsk();
           });
         });
       });
     }
+    // Nevermind; return to Main Menu
     else {
       mainMenuAsk();
     }
   });
 }
 
+// View Menu
 const viewMenu = [
   {
       type: "list",
@@ -182,6 +202,7 @@ const viewMenu = [
   },
 ];
 
+// View Menu Exit
 const ViewMenuExit = [
   {
     type: "confirm",
@@ -198,6 +219,7 @@ function finishViewing() {
   });
 }
 
+// Budget Menu
 const budgetMenu = [
   {
       type: "list",
@@ -209,26 +231,32 @@ const budgetMenu = [
 
 function viewAsk() {
   inquirer.prompt(viewMenu).then((viewMenuSelection) => {
+    // View departments
     if (viewMenuSelection.options === "Departments") {
       connection.query(`SELECT * FROM employeetracker_db.department;`, (err, res) => {
         console.table(res);
+        // Confirm before returning to main menu
         finishViewing();
       });
     }
+    // View roles
     else if (viewMenuSelection.options === "Roles") {
       connection.query(`SELECT * FROM employeetracker_db.role;`, (err, res) => {
         console.table(res);
         finishViewing();
       });
     }
+    // View employees
     else if (viewMenuSelection.options === "Employees") {
       connection.query(`SELECT * FROM employeetracker_db.employee;`, (err, res) => {
         console.table(res);
         finishViewing();
       });
     }
+    // View total budget of a department
     else if (viewMenuSelection.options === "The total budget of a department") {
       connection.query(`SELECT * FROM employeetracker_db.department;`, (err, res) => {
+        // Update department choices
         for (let i = 0; i < res.length; i++) {
           let departmentChoice = res[i].name;
           if (!departmentChoices.includes(departmentChoice)) {
@@ -238,9 +266,11 @@ function viewAsk() {
 
         inquirer.prompt(budgetMenu).then((budgetMenuSelection) => {
           connection.query(`SELECT * FROM employeetracker_db.department WHERE department.name = "${budgetMenuSelection.options}";`, (err, res) => {
+            // Obtain id for department
             var departmentId = res[0].id;
   
             connection.query(`SELECT role.salary FROM employee INNER JOIN role ON employee.role_id = role.id WHERE role.department_id="${departmentId}"`, (err, res) => {
+              // Sum all employee's salaries from chosen department
               var salarySum = 0;
               for (let i = 0; i < res.length; i++){
                 salarySum += res[i].salary;
@@ -252,12 +282,14 @@ function viewAsk() {
         });
       });
     }
+    // Nevermind; return to Main Menu
     else {
       mainMenuAsk();
     }
   });
 }
 
+// Update Employee Menu
 var employeeChoices = ["Nevermind"];
 const updateEmployeeMenu = [
   {
@@ -268,6 +300,7 @@ const updateEmployeeMenu = [
   },
 ];
 
+// New Role Menu
 const newRoleMenu = [
   {
     type: "list",
@@ -279,6 +312,7 @@ const newRoleMenu = [
 
 function updateAsk() {
   connection.query(`SELECT * FROM employeetracker_db.employee;`, (err, res) => {
+    // Update employee choices
     for (let i = 0; i < res.length; i++) {
       let employeeChoice = `${res[i].first_name} ${res[i].last_name}`;
       if (!employeeChoices.includes(employeeChoice)) {
@@ -287,11 +321,13 @@ function updateAsk() {
     }
 
     inquirer.prompt(updateEmployeeMenu).then((updateEmployeeMenuSelection) => {
+      // Nevermind; return to Main Menu
       if ((updateEmployeeMenuSelection.options === "Nevermind")) {
         mainMenuAsk();
       }
       else {
         connection.query(`SELECT * FROM employeetracker_db.role;`, (err, res) => {
+          // Update role choices
           for (let i = 0; i < res.length; i++) {
             let roleChoice = res[i].title;
             if (!roleChoices.includes(roleChoice)) {
@@ -300,8 +336,10 @@ function updateAsk() {
           }
 
           inquirer.prompt(newRoleMenu).then((newRoleMenuSelection) => {
+            // Obtain employee's employee and role ids
             var employeeId = employeeChoices.indexOf(updateEmployeeMenuSelection.options);
             var roleId = roleChoices.indexOf(newRoleMenuSelection.options);
+            // Update employee's role in database
             connection.query(`UPDATE employee SET role_id = ${roleId} WHERE id = ${employeeId};`);
             mainMenuAsk();
           });
@@ -311,4 +349,5 @@ function updateAsk() {
   });
 }
 
+// Starts the application by bringing up its main menu
 mainMenuAsk();

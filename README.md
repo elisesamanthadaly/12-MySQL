@@ -12,7 +12,7 @@ Clone the repository to your local machine. You should also have Git Bash, Node.
 
 ## Usage
 
-This [video](LINK HERE!) details how to use the Employee Tracker.
+This [video](https://drive.google.com/file/d/17kcvU3Ywnt-OI4KvioB_AvR9-wKympeq/view?usp=sharing) details how to use the Employee Tracker.
 
 
 ## Credits

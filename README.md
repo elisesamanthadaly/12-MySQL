@@ -1,4 +1,4 @@
-# Unit-12-MySQL-Homework
+# 12 MySQL
 # Employee Tracker
 
 This application is an Employee Tracker run through the command line. Users are taken through a series of prompts to manage a MySQL database containing information about a business' departments, employees, and employee roles. Currently, users can add/view departments, employees, and roles, update employees' roles, and view the total combined salaries for all employees in a particular department.
